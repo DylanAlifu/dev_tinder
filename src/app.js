@@ -6,10 +6,18 @@ const app = express();
 
 app.use(express.json());
 
-app.get("/feed", (req, res) => {
+// GET all users
+app.get("/feed", async (req, res) => {
   // get all users from the database
+  try {
+    const users = await User.find({});
+    res.send(users);
+  } catch (error) {
+    res.status(400).send("Error fetching users");
+  }
 });
 
+// GET user by email
 app.get("/api/user", async (req, res) => {
   // get a single user from the database by email
   const userEmail = req.body.email;
@@ -25,6 +33,24 @@ app.get("/api/user", async (req, res) => {
   }
 });
 
+// PUT update a user by email
+app.put("/api/update", async (req, res) => {
+  // update a user by email
+  const userEmail = req.body.email;
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { email: userEmail },
+      { firstName: req.body.firstName, lastName: req.body.lastName }
+    );
+
+    res.send("User updated successfully");
+  } catch (error) {
+    res.status(400).send("Error updating user");
+  }
+});
+
+// POST a new user
 app.post("/api/signup", async (req, res) => {
   // create a new instance of the User model in postman body
   //   {
@@ -43,6 +69,19 @@ app.post("/api/signup", async (req, res) => {
     log("User saved successfully");
   } catch (error) {
     res.status(400).send("Error saving user");
+  }
+});
+
+// Delete a user by id
+app.delete("/api/delete/:id", async (req, res) => {
+  // delete a user by id
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findByIdAndDelete(userId);
+    res.send("User deleted successfully");
+  } catch (error) {
+    res.status(400).send("Error deleting user");
   }
 });
 
