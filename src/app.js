@@ -54,11 +54,11 @@ app.put("/api/update", async (req, res) => {
 app.post("/api/signup", async (req, res) => {
   // create a new instance of the User model in postman body
   //   {
-  //     "firstName": "Steph",
-  //     "lastName": "Curry",
-  //     "email": "scurry@gmail.com",
-  //     "password": "scurry@123",
-  //     "age": 34,
+  //     "firstName": "Jack",
+  //     "lastName": "Ma",
+  //     "email": "jackma@gmail.com",
+  //     "password": "jack@123",
+  //     "age": 54,
   //     "gender": "male"
   //   }
   const user = new User(req.body);
@@ -68,7 +68,7 @@ app.post("/api/signup", async (req, res) => {
     res.send("User saved successfully");
     log("User saved successfully");
   } catch (error) {
-    res.status(400).send("Error saving user");
+    res.status(400).send(error.message);
   }
 });
 
