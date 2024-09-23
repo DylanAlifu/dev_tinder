@@ -50,6 +50,40 @@ app.put("/api/update", async (req, res) => {
   }
 });
 
+// PUT update a user by id
+app.put("/api/user/:userId", async (req, res) => {
+  // update a user by id
+  const userId = req.params?.userId;
+  const data = req.body;
+
+  try {
+    const ALLOWED_UPDATES = ["about", "age", "gender"];
+
+    // data object in postman body
+    // {
+    // _id : 66ece047ae8b81a35377085b
+    // age : 64
+    // gender : "male"
+    // about : "I am new to DevTinder and excited to meet new people!"
+    // }
+  
+    const updates = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
+  
+    if (!updates) {
+      return res.status(400).send("Update not allowed");
+    }
+
+    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
+      returnDocument: "after",
+      runValidators: true,
+    });
+    console.log(user);
+    res.send("User updated successfully");
+  } catch (error) {
+    res.status(400).send("Error updating user: " + error.message);
+  }
+});
+
 // POST a new user
 app.post("/api/signup", async (req, res) => {
   // create a new instance of the User model in postman body
