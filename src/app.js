@@ -3,10 +3,16 @@ const connectDB = require("./config/database");
 const User = require("./models/user");
 const { validateSignUpData } = require("./utils/validation");
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
+// Create an express application
 const app = express();
 
+// Middleware: parse incoming JSON data
 app.use(express.json());
+// Middleware: parse incoming cookies
+app.use(cookieParser());
 
 // GET all users
 app.get("/feed", async (req, res) => {
@@ -16,6 +22,60 @@ app.get("/feed", async (req, res) => {
     res.send(users);
   } catch (error) {
     res.status(400).send("Error fetching users");
+  }
+});
+
+// POST user login
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (isPasswordValid) {
+      // Create a jwt token: jwt.sign(payload, secret)
+      // payload: data you want to encode in the token
+      // secret: a secret string that only the server knows
+      const token = jwt.sign({ _id: user._id }, "dev@tinder$505");
+
+      // Add the token to cookies and send it back to the client
+      res.cookie("token", token);
+
+      res.send("User logged in successfully");
+    } else {
+      throw new Error("Invalid password");
+    }
+  } catch (error) {
+    res.status(400).send("Error logging in user");
+  }
+});
+
+// GET user profile
+app.get("/api/profile", async (req, res) => {
+  try {
+    // first get the token from the cookies in the request (which was set by the server when the user logged in)
+    const cookies = req.cookies;
+    const { token } = cookies;
+
+    if (!token) {
+      throw new Error("Invalid token");
+    }
+
+    // verify the token
+    const decodedMessage = jwt.verify(token, "dev@tinder$505");
+
+    // get the user id from the decoded message
+    const { _id } = decodedMessage;
+
+    res.send("Reading cookie");
+  } catch (error) {
+    res.status(400).send("Error fetching user profile");
   }
 });
 
@@ -79,7 +139,6 @@ app.put("/api/user/:userId", async (req, res) => {
       returnDocument: "after",
       runValidators: true,
     });
-    console.log(user);
     res.send("User updated successfully");
   } catch (error) {
     res.status(400).send("Error updating user: " + error.message);
@@ -111,7 +170,8 @@ app.post("/api/signup", async (req, res) => {
     log("User saved successfully");
   } catch (error) {
     // This will only be reached if user.save() fails
-    if (!res.headersSent) { // check if headers have already been sent
+    if (!res.headersSent) {
+      // check if headers have already been sent
       res.status(400).send(error.message);
     } else {
       console.error("Failed to save user: ", error.message);
