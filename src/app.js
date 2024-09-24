@@ -1,6 +1,8 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -66,9 +68,9 @@ app.put("/api/user/:userId", async (req, res) => {
     // gender : "male"
     // about : "I am new to DevTinder and excited to meet new people!"
     // }
-  
+
     const updates = Object.keys(data).every((k) => ALLOWED_UPDATES.includes(k));
-  
+
     if (!updates) {
       return res.status(400).send("Update not allowed");
     }
@@ -86,23 +88,34 @@ app.put("/api/user/:userId", async (req, res) => {
 
 // POST a new user
 app.post("/api/signup", async (req, res) => {
-  // create a new instance of the User model in postman body
-  //   {
-  //     "firstName": "Jack",
-  //     "lastName": "Ma",
-  //     "email": "jackma@gmail.com",
-  //     "password": "jack@123",
-  //     "age": 54,
-  //     "gender": "male"
-  //   }
-  const user = new User(req.body);
+  // validation of user data
+  try {
+    validateSignUpData(req);
+  } catch (error) {
+    return res.status(400).send(error.message);
+  }
 
   try {
+    // encrypt password before saving
+    const passwordHash = await bcrypt.hash(req.body.password, 8);
+
+    // create a new instance of the User model with the request body
+    const user = new User({
+      ...req.body,
+      password: passwordHash, // Ensure you're saving the hashed password
+    });
+
+    // save the new user
     await user.save();
     res.send("User saved successfully");
     log("User saved successfully");
   } catch (error) {
-    res.status(400).send(error.message);
+    // This will only be reached if user.save() fails
+    if (!res.headersSent) { // check if headers have already been sent
+      res.status(400).send(error.message);
+    } else {
+      console.error("Failed to save user: ", error.message);
+    }
   }
 });
 
