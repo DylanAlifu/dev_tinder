@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema(
   {
@@ -54,6 +56,19 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// NOTE: Arrow functions cannot be used here as we need `this`
+userSchema.methods.getJWT = async function () {
+  const token = await jwt.sign({ _id: this.id }, "dev@tinder$505", {
+    expiresIn: "1d",
+  });
+
+  return token;
+};
+
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
+  return await bcrypt.compare(passwordInputByUser, this.password);
+};
 
 const User = mongoose.model("User", userSchema);
 
