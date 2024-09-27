@@ -28,7 +28,14 @@ router.patch("/profile/edit", userAuth, async (req, res) => {
 
     await user.save();
 
-    res.send(`${user.firstName}, your profile updated successfully`);
+    res.json({
+      message: "User profile updated successfully",
+      // return the first name and last name only
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
   } catch (error) {
     res.status(400).send("Error updating user profile");
   }
