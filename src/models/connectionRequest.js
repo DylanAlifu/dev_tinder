@@ -25,6 +25,11 @@ const connectionRequestSchema = new mongoose.Schema(
   }
 );
 
+
+// fromUserId: the user who is sending the connection request
+// toUserId: the user who is receiving the connection request
+connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
+
 connectionRequestSchema.pre("save", function (next) {
   const connectionRequest = this;
 

@@ -3,7 +3,6 @@ const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest");
 const User = require("../models/user");
 
-
 const router = express.Router();
 
 router.post("/sendConnectionRequest", userAuth, async (req, res) => {
@@ -69,7 +68,12 @@ router.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
     const data = await connectionRequest.save();
 
     res.json({
-      Message: "Connection request sent successfully",
+      Message:
+        req.user.firstName +
+        " sent an " +
+        status +
+        " request to: " +
+        toUser.firstName,
       data: data,
     });
 
