@@ -7,7 +7,6 @@ const userRouter = express.Router();
 
 const USER_SAFE_DATA = ["firstName", "lastName"];
 
-// Get all the pending connection requests sent by the user to other users
 userRouter.get("/user/requests/pending", userAuth, async (req, res) => {
   try {
     const loggedInUser = req.user;
@@ -22,7 +21,7 @@ userRouter.get("/user/requests/pending", userAuth, async (req, res) => {
       data: connectionRequest,
     });
   } catch (error) {
-    error.status(400).json({
+    res.status(400).json({
       Message: "Error fetching requests : " + error.message,
     });
   }
@@ -53,6 +52,36 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
   } catch (error) {
     res.status(400).json({
       Message: "Error fetching connections : " + error.message,
+    });
+  }
+});
+
+userRouter.get("/user/feed", userAuth, async (req, res) => {
+  try {
+    const loggedInUser = req.user;
+
+    const connectionRequest = await ConnectionRequest.find({
+      $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
+    }).select("fromUserId toUserId");
+
+    const hideUserFromFeed = new Set();
+
+    connectionRequest.forEach((request) => {
+      hideUserFromFeed.add(request.fromUserId.toString());
+      hideUserFromFeed.add(request.toUserId.toString());
+    });
+
+    const users = await User.find({
+      $and: [
+        { _id: { $nin: Array.from(hideUserFromFeed) } },
+        { _id: { $ne: loggedInUser._id } },
+      ],
+    }).select(USER_SAFE_DATA);
+
+    res.send(users);
+  } catch (error) {
+    res.status(400).json({
+      Message: "Error fetching feed : " + error.message,
     });
   }
 });
