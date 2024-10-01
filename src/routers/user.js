@@ -35,9 +35,16 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
     const connectionRequest = await ConnectionRequest.find({
       $or: [{ toUserId: loggedInUser._id }, { fromUserId: loggedInUser._id }],
       status: "accepted",
-    }).populate("fromUserId", USER_SAFE_DATA);
+    })
+      .populate("fromUserId", USER_SAFE_DATA)
+      .populate("toUserId", USER_SAFE_DATA);
 
-    const data = connectionRequest.map((connection) => connection.fromUserId);
+    const data = connectionRequest.map((connection) => {
+      if (connection.fromUserId._id.equals(loggedInUser._id)) {
+        return connection.toUserId;
+      }
+      return connection.fromUserId;
+    });
 
     res.status(200).json({
       Message: "Connections fetched successfully",
