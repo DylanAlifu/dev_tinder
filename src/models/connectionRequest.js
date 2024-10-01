@@ -1,10 +1,12 @@
 const e = require("express");
 const mongoose = require("mongoose");
+const User = require("./user");
 
 const connectionRequestSchema = new mongoose.Schema(
   {
     fromUserId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     toUserId: {
@@ -24,7 +26,6 @@ const connectionRequestSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
 
 // fromUserId: the user who is sending the connection request
 // toUserId: the user who is receiving the connection request
