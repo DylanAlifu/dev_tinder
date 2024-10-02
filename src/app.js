@@ -1,6 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
 // Import routers
 const profileRouter = require("./routers/profile");
@@ -15,11 +16,13 @@ const app = express();
 app.use(express.json());
 // Middleware: parse incoming cookies
 app.use(cookieParser());
+// Middleware: enable CORS
+app.use(cors());
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
-app.use("/", userRouter)
+app.use("/", userRouter);
 
 connectDB()
   .then(() => {
