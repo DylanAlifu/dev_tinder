@@ -14,7 +14,7 @@ userRouter.get("/user/requests/pending", userAuth, async (req, res) => {
     const connectionRequest = await ConnectionRequest.find({
       toUserId: loggedInUser._id,
       status: "interested",
-    }).populate("fromUserId", ["firstName", "lastName"]);
+    }).populate("fromUserId", ["firstName", "lastName", "url"]);
 
     res.status(200).json({
       Message: "Pending connection requests fetched successfully",
