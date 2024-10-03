@@ -24,9 +24,13 @@ router.post("/signup", async (req, res) => {
     });
 
     // save the new user
-    await user.save();
-    res.send("User saved successfully");
-    log("User saved successfully");
+    const savedUser = await user.save();
+    const token = await savedUser.getJWT();
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+    });
+    res.json({ message: "User created successfully", data: savedUser });
   } catch (error) {
     // This will only be reached if user.save() fails
     if (!res.headersSent) {
