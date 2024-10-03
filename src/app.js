@@ -17,7 +17,12 @@ app.use(express.json());
 // Middleware: parse incoming cookies
 app.use(cookieParser());
 // Middleware: enable CORS
-app.use(cors());
+app.use(cors(
+  {
+    origin: "http://localhost:5173",
+    credentials: true,
+  }
+));
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
